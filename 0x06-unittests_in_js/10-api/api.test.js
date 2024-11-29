@@ -3,6 +3,7 @@ const request = require('supertest');
 const app = require('./api');
 
 describe('API Integration Tests', function() {
+  // Cart endpoint tests (from previous task)
   describe('Cart page', function() {
     it('should return status 200 and correct message for valid cart ID', async function() {
       const response = await request(app)
@@ -19,6 +20,7 @@ describe('API Integration Tests', function() {
     });
   });
 
+  // New test suite for available payments endpoint
   describe('Available Payments', function() {
     it('should return correct payment methods object', async function() {
       const response = await request(app)
@@ -35,6 +37,7 @@ describe('API Integration Tests', function() {
     });
   });
 
+  // New test suite for login endpoint
   describe('Login', function() {
     it('should return welcome message with provided username', async function() {
       const response = await request(app)
