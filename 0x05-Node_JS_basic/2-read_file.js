@@ -37,9 +37,11 @@ function countStudents(path) {
     });
 
     for (const field in fieldsMap) {
-      console.log(
-        `Number of students in ${field}: ${fieldsMap[field].length}. List: ${fieldsMap[field].join(', ')}`
-      );
+      if (Object.prototype.hasOwnProperty.call(fieldsMap, field)) {
+        console.log(
+          `Number of students in ${field}: ${fieldsMap[field].length}. List: ${fieldsMap[field].join(', ')}`, // <-- Added trailing comma here
+        );
+      }
     }
   } catch (error) {
     throw new Error('Cannot load the database');
