@@ -4,8 +4,8 @@ async function countStudents(path) {
   try {
     // Attempt to read the CSV file
     const data = await fs.readFile(path, 'utf-8');
-    
-    // Split the data into rows (lines)
+
+    // Split the data into rows (lines) and remove empty lines
     const rows = data.split('\n').filter(row => row.trim() !== '');
 
     // If there are no rows, throw an error
