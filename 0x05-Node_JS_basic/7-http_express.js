@@ -1,51 +1,58 @@
 const express = require('express');
-const fs = require('fs');
-const csv = require('csv-parser');
+const fs = require('fs').promises;
+
 const app = express();
 
-// Handle GET request to the root URL '/'
+const countStudents = async (path) => {
+  try {
+    const data = await fs.readFile(path, 'utf8');
+    const lines = data
+      .toString()
+      .split('\n')
+      .filter((line) => line.trim().length > 0);
+    
+    const headers = lines[0].split(',');
+    const studentData = lines.slice(1);
+    if (studentData.length === 0) {
+      throw new Error('Cannot load the database');
+    }
+
+    const studentsByField = {};
+    studentData.forEach((line) => {
+      const fields = line.split(',');
+      const field = fields[3];
+      const firstName = fields[0];
+
+      if (!studentsByField[field]) {
+        studentsByField[field] = [];
+      }
+      studentsByField[field].push(firstName);
+    });
+
+    let output = `Number of students: ${studentData.length}\n`;
+    for (const [field, students] of Object.entries(studentsByField)) {
+      output += `Number of students in ${field}: ${students.length}. List: ${students.join(', ')}\n`;
+    }
+    return output.trim();
+  } catch (error) {
+    throw new Error('Cannot load the database');
+  }
+};
+
 app.get('/', (req, res) => {
-  res.type('text/plain');
   res.send('Hello ALX!');
 });
 
-// Handle GET request to the '/students' URL
-app.get('/students', (req, res) => {
-  const dbFile = process.argv[2]; // Get the database file passed as an argument
-  if (!dbFile) {
-    res.status(400).send('Missing database file argument');
-    return;
+app.get('/students', async (req, res) => {
+  const databasePath = process.argv[2];
+  try {
+    const studentInfo = await countStudents(databasePath);
+    res.send(`This is the list of our students\n${studentInfo}`);
+  } catch (error) {
+    res.send(`This is the list of our students\n${error.message}`);
   }
-
-  const students = [];
-  const studentsInCS = [];
-  const studentsInSWE = [];
-
-  fs.createReadStream(dbFile)
-    .pipe(csv())
-    .on('data', (row) => {
-      if (row.firstname && row.lastname && row.field) {
-        students.push(`${row.firstname} ${row.lastname}`);
-        if (row.field === 'CS') {
-          studentsInCS.push(row.firstname);
-        } else if (row.field === 'SWE') {
-          studentsInSWE.push(row.firstname);
-        }
-      }
-    })
-    .on('end', () => {
-      res.type('text/plain');
-      res.send(
-        `This is the list of our students\nNumber of students: ${students.length}\n` +
-        `Number of students in CS: ${studentsInCS.length}. List: ${studentsInCS.join(', ')}\n` +
-        `Number of students in SWE: ${studentsInSWE.length}. List: ${studentsInSWE.join(', ')}`
-      );
-    });
 });
 
-// Listen on port 1245
-app.listen(1245, () => {
-  console.log('Server running on port 1245');
-});
+app.listen(1245);
 
 module.exports = app;
